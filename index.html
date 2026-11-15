@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Pokémon Box Manager</title>
+<style>
+:root{--bg:#0b1020;--panel:#151d31;--panel2:#1d2942;--line:#2c3a59;--text:#edf3ff;--muted:#9eacc7;--accent:#69d2ff;--accent2:#a78bfa;--good:#65e6a5;--bad:#ff8294;--gold:#ffd36e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1b2a49 0,#0b1020 55%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid var(--line);background:#253451;color:var(--text);padding:10px 14px;border-radius:11px;font-weight:650}button:hover{filter:brightness(1.15)}button.primary{background:linear-gradient(120deg,#168fca,#6654d9);border:0}button.danger{background:#482637;border-color:#754052;color:#ffc6d0}button.small{padding:6px 9px;font-size:.85rem}
+header{max-width:1200px;margin:auto;padding:26px 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}.ball{width:42px;height:42px;border-radius:50%;background:linear-gradient(#ff5c67 0 48%,#182238 48% 54%,#f4f7ff 54%);border:3px solid #f4f7ff;position:relative;box-shadow:0 0 24px #ff647455}.ball:after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:#f4f7ff;border:3px solid #182238;left:12px;top:12px}
+h1{font-size:1.35rem;margin:0;letter-spacing:.02em}.sub{color:var(--muted);font-size:.88rem;margin-top:3px}
+main{max-width:1200px;margin:auto;padding:12px 20px 50px}
+.topbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#111a2cdd;border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:16px}
+.topbar label{font-size:.8rem;color:var(--muted);display:block;margin-bottom:4px}.topbar select{min-width:170px}
+select,input,textarea{background:#0d1628;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px;width:100%;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px #69d2ff20}
+.player-control{min-width:210px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.tab{background:#17233a;color:var(--muted)}.tab.active{background:#28496a;border-color:#4aa9d6;color:white;box-shadow:inset 0 -2px var(--accent)}
+.boxhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:15px 0}.boxhead h2{margin:0;font-size:1.1rem}.actions{display:flex;gap:8px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:13px}
+.mon-card{background:linear-gradient(145deg,#1a2740,#111a2c);border:1px solid var(--line);border-radius:16px;padding:15px;min-height:185px;position:relative;overflow:hidden}
+.mon-card:before{content:"";position:absolute;width:130px;height:130px;border:1px solid #ffffff0b;border-radius:50%;right:-50px;top:-55px}
+.mon-title{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.mon-title h3{margin:0 0 4px;font-size:1.08rem;text-transform:capitalize}.level{font-size:.8rem;color:var(--gold);background:#58472155;padding:5px 8px;border-radius:20px;white-space:nowrap}
+.types{color:var(--muted);font-size:.8rem;margin:6px 0 12px}.statline{display:flex;justify-content:space-between;font-size:.86rem;padding:4px 0;border-bottom:1px solid #ffffff0a}.statline b{color:#dceaff}.cardfoot{display:flex;gap:7px;margin-top:12px}.cardfoot button{flex:1}
+.empty{border:1px dashed #435474;border-radius:18px;padding:42px 20px;text-align:center;color:var(--muted);grid-column:1/-1}.empty .emoji{font-size:2.4rem;margin-bottom:10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:16px}.panel h3{margin:0 0 13px}.muted{color:var(--muted);font-size:.88rem}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.field label{display:block;color:var(--muted);font-size:.8rem;margin:0 0 5px}.field.full{grid-column:1/-1}.stats-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.stat-input label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:4px}.stat-input input{padding:8px}
+.modalback{position:fixed;inset:0;background:#050914cc;display:none;align-items:center;justify-content:center;padding:15px;z-index:10}.modalback.show{display:flex}.modal{width:min(720px,100%);max-height:92vh;overflow:auto;background:#151f34;border:1px solid #435474;border-radius:18px;padding:20px;box-shadow:0 20px 80px #0009}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.modalhead h2{margin:0;font-size:1.2rem}.modalfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.result{background:#0d1729;border:1px solid #30435f;border-radius:12px;padding:12px;margin-top:12px}.result strong{color:var(--good)}.pill{display:inline-block;background:#263754;border-radius:20px;padding:4px 8px;font-size:.75rem;color:#c5d9f7;margin:2px}
+.log{max-height:170px;overflow:auto;font-size:.82rem;color:var(--muted);padding-left:18px}.save-status{display:inline-flex;align-items:center;gap:7px;color:var(--good);font-size:.82rem;padding:7px 10px;border:1px solid #65e6a544;border-radius:20px;background:#65e6a510}.save-status.error{color:var(--bad);border-color:#ff829455;background:#ff829410}.notice{border-left:3px solid var(--gold);padding:9px 12px;background:#3b321b55;color:#e9d9ad;font-size:.82rem;border-radius:5px;margin:10px 0}
+footer{text-align:center;color:#7888a5;font-size:.78rem;padding:20px}
+@media(max-width:600px){header{padding-top:18px}.formgrid{grid-template-columns:1fr}.stats-inputs{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar>*{flex:1}.player-control{min-width:100%}.boxhead{align-items:flex-start}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><div class="ball"></div><div><h1>Pokémon Box Manager</h1><div class="sub">Build your team · Track stats · Grow your collection</div></div></div>
+ <div class="save-status" id="saveStatus" role="status" aria-live="polite">● Saved on this device</div>
+ <button id="exportBtn">Export backup</button>
+</header>
+<main>
+ <section class="topbar">
+  <div class="player-control"><label for="playerSelect">PLAYER</label><select id="playerSelect"></select></div>
+  <button class="primary" id="addPlayerBtn">＋ Add player</button>
+  <button id="renamePlayerBtn">Rename player</button>
+  <button class="danger small" id="deletePlayerBtn">Delete player</button>
+ </section>
+ <div class="tabs" id="boxTabs" aria-label="Boxes"></div>
+ <div class="boxhead"><div><h2 id="boxTitle">Box 1</h2><div class="sub" id="boxCount">0 Pokémon</div></div><div class="actions"><button id="newBoxBtn">＋ New box</button><button id="renameBoxBtn">Rename box</button><button class="primary" id="addMonBtn">＋ Add Pokémon</button></div></div>
+ <section class="grid" id="monGrid"></section>
+ <section class="panel">
+  <h3>How activity tracking works</h3>
+  <p class="muted">Record what your Pokémon did to add EVs. Try entries such as <b>Defeated Geodude x2</b>, <b>Defeated Zubat</b>, or enter exact gains like <b>+4 Attack, +2 Speed</b>. EVs are saved to that Pokémon automatically.</p>
+  <div class="notice">The built-in opponent list covers common Pokémon and their usual EV yields. If an opponent is not recognised, enter exact EV gains instead. EV gains are capped at 252 per stat and 510 total.</div>
+ </section>
+</main>
+<footer>Saved automatically on this device in this browser. Use Export backup to keep a copy.</footer>
+
+<div class="modalback" id="modalBack"><div class="modal" role="dialog" aria-modal="true">
+ <div class="modalhead"><h2 id="modalTitle">Add Pokémon</h2><button class="small" id="closeModal">✕</button></div>
+ <div id="modalContent"></div>
+ <div class="modalfoot" id="modalFoot"></div>
+</div></div>
+<input type="file" id="importFile" accept="application/json" hidden>
+<script>
+const $=id=>document.getElementById(id);
+const STAT_KEYS=["hp","attack","defense","spAttack","spDefense","speed"];
+const STAT_LABELS=["HP","Attack","Defense","Sp. Attack","Sp. Defense","Speed"];
+const STORE="pokemon_box_manager_v1";
+let db=loadDB(), currentPlayer=db.currentPlayer, currentBox=null, editingMon=null;
+
+function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36)}
+function freshPlayer(name){let id=uid();return {id,name,boxes:[{id:uid(),name:"Box 1",mons:[]}]}}
+function loadDB(){
+ try{let x=JSON.parse(localStorage.getItem(STORE));if(x&&Array.isArray(x.players)&&x.players.length)return x}catch(e){}
+ let p=freshPlayer("Player 1");return {players:[p],currentPlayer:p.id}
+}
+function save(){
+ db.currentPlayer=currentPlayer;
+ try{
+  localStorage.setItem(STORE,JSON.stringify(db));
+  const status=$("saveStatus");
+  if(status){status.classList.remove("error");status.textContent="● Saved on this device"}
+  return true;
+ }catch(e){
+  const status=$("saveStatus");
+  if(status){status.classList.add("error");status.textContent="● Save failed — storage is full or blocked"}
+  console.error("Could not save Pokémon Box Manager data:",e);
+  return false;
+ }
+}
+function player(){return db.players.find(p=>p.id===currentPlayer)||db.players[0]}
+function box(){return player().boxes.find(b=>b.id===currentBox)||player().boxes[0]}
+function safe(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function render(){
+ if(!player())return;
+ if(!currentBox||!player().boxes.some(b=>b.id===currentBox))currentBox=player().boxes[0].id;
+ $("playerSelect").innerHTML=db.players.map(p=>`<option value="${p.id}" ${p.id===currentPlayer?"selected":""}>${safe(p.name)}</option>`).join("");
+ $("boxTabs").innerHTML=player().boxes.map(b=>`<button class="tab ${b.id===currentBox?"active":""}" data-box="${b.id}">${safe(b.name)} (${b.mons.length})</button>`).join("");
+ $("boxTabs").querySelectorAll("[data-box]").forEach(btn=>btn.onclick=()=>{currentBox=btn.dataset.box;render()});
+ $("boxTitle").textContent=box().name;$("boxCount").textContent=`${box().mons.length} Pokémon`;
+ let mons=box().mons;
+ $("monGrid").innerHTML=mons.length?mons.map(m=>{
+  let s=calcStats(m), ivavg=Math.round(STAT_KEYS.reduce((a,k)=>a+m.ivs[k],0)/6);
+  return `<article class="mon-card"><div class="mon-title"><div><h3>${safe(m.nickname||m.species)}</h3><div class="sub">${safe(m.species)} · ${safe(m.types||"Type not set")}</div></div><span class="level">Lv. ${m.level}</span></div>
+  <div class="types">IV average: ${ivavg}/31 · EV total: ${totalEV(m.evs)}/510</div>
+  ${STAT_KEYS.map((k,i)=>`<div class="statline"><span>${STAT_LABELS[i]}</span><b>${s[k]}</b></div>`).join("")}
+  <div class="cardfoot"><button class="small" data-edit="${m.id}">View / edit</button><button class="small" data-activity="${m.id}">Activity</button></div></article>`
+ }).join(""):`<div class="empty"><div class="emoji">📦</div><b>This box is empty</b><p>Add a Pokémon to get started.</p><button class="primary" id="emptyAdd">＋ Add Pokémon</button></div>`;
+ $("monGrid").querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openMon(b.dataset.edit));
+ $("monGrid").querySelectorAll("[data-activity]").forEach(b=>b.onclick=()=>openActivity(b.dataset.activity));
+ let ea=$("emptyAdd");if(ea)ea.onclick=()=>openMon();
+ save();
+}
+function totalEV(e){return STAT_KEYS.reduce((a,k)=>a+(Number(e[k])||0),0)}
+function calcStats(m){
+ let out={};
+ STAT_KEYS.forEach(k=>{
+  let base=Number(m.base[k])||0,iv=Number(m.ivs[k])||0,ev=Math.floor((Number(m.evs[k])||0)/4);
+  if(k==="hp")out[k]=m.species.toLowerCase()==="shedinja"?1:Math.floor(((2*base+iv+ev)*m.level)/100)+m.level+10;
+  else out[k]=Math.floor((Math.floor(((2*base+iv+ev)*m.level)/100)+5)*1);
+ });
+ return out;
+}
+function openModal(title,content,buttons){$("modalTitle").textContent=title;$("modalContent").innerHTML=content;$("modalFoot").innerHTML=buttons;$("modalBack").classList.add("show")}
+function closeModal(){$("modalBack").classList.remove("show")}
+$("closeModal").onclick=closeModal;$("modalBack").addEventListener("click",e=>{if(e.target===$("modalBack"))closeModal()});
+function openMon(id=null){
+ let m=id?box().mons.find(x=>x.id===id):null;editingMon=id;
+ let v=m||{species:"",nickname:"",types:"",level:5,base:{hp:0,attack:0,defense:0,spAttack:0,spDefense:0,speed:0},ivs:Object.fromEntries(STAT_KEYS.map(k=>[k,Math.floor(Math.random()*32)])),evs:Object.fromEntries(STAT_KEYS.map(k=>[k,0]))};
+ let fields=(obj,prefix)=>STAT_KEYS.map((k,i)=>`<div class="stat-input"><label>${STAT_LABELS[i]}</label><input type="number" min="0" max="${prefix==="ivs"?31:prefix==="evs"?252:999}" id="${prefix}_${k}" value="${obj[k]??0}"></div>`).join("");
+ let content=`<div class="formgrid">
+ <div class="field"><label>Pokémon species</label><input id="species" placeholder="e.g. Pikachu" value="${safe(v.species)}"></div>
+ <div class="field"><label>Nickname</label><input id="nickname" placeholder="Optional nickname" value="${safe(v.nickname)}"></div>
+ <div class="field"><label>Type(s)</label><input id="types" placeholder="e.g. Electric" value="${safe(v.types)}"></div>
+ <div class="field"><label>Level</label><input id="level" type="number" min="1" max="100" value="${v.level}"></div>
+ <div class="field full"><label>Base stats (enter the species' base stats)</label><div class="stats-inputs">${fields(v.base,"base")}</div></div>
+ <div class="field full"><label>IVs (randomly generated 0–31 for new Pokémon; editable)</label><div class="stats-inputs">${fields(v.ivs,"ivs")}</div><button type="button" class="small" id="rerollIV">🎲 Randomise IVs</button></div>
+ <div class="field full"><label>EVs (updated by Activity)</label><div class="stats-inputs">${fields(v.evs,"evs")}</div></div>
+ </div><div class="result" id="preview">Enter base stats to see calculated stats.</div>`;
+ let foot=`${id?'<button class="danger" id="deleteMon">Delete Pokémon</button>':""}<button id="cancelMon">Cancel</button><button class="primary" id="saveMon">Save Pokémon</button>`;
+ openModal(id?"Edit Pokémon":"Add Pokémon",content,foot);
+ $("cancelMon").onclick=closeModal;
+ $("rerollIV").onclick=()=>STAT_KEYS.forEach(k=>$("ivs_"+k).value=Math.floor(Math.random()*32));
+ function preview(){try{let t=readMonFields(v);if(t.species&&t.level>=1&&STAT_KEYS.every(k=>t.base[k]>=0&&t.ivs[k]>=0&&t.ivs[k]<=31&&t.evs[k]>=0)){let st=calcStats(t);$("preview").innerHTML="<b>Calculated stats</b><br>"+STAT_KEYS.map((k,i)=>`${STAT_LABELS[i]}: <strong>${st[k]}</strong>`).join(" · ")}}catch(e){}}
+ $("modalContent").querySelectorAll("input").forEach(x=>x.addEventListener("input",preview));
+ $("saveMon").onclick=()=>{
+  try{
+   let n=readMonFields(v);
+   if(!n.species)throw Error("Enter a Pokémon species.");
+   if(!Number.isInteger(n.level)||n.level<1||n.level>100)throw Error("Level must be between 1 and 100.");
+   for(let k of STAT_KEYS){if(n.base[k]<0||n.ivs[k]<0||n.ivs[k]>31||n.evs[k]<0||n.evs[k]>252)throw Error("Check base stats, IVs (0–31), and EVs (0–252).")}
+   if(totalEV(n.evs)>510)throw Error("Total EVs cannot exceed 510.");
+   if(id){let ix=box().mons.findIndex(x=>x.id===id);n.id=id;box().mons[ix]=n}else{n.id=uid();box().mons.push(n)}
+   save();closeModal();render();
+  }catch(e){alert(e.message)}
+ };
+ if(id)$("deleteMon").onclick=()=>{if(confirm("Delete this Pokémon?")){box().mons=box().mons.filter(x=>x.id!==id);save();closeModal();render()}};
+ preview();
+}
+function readMonFields(old){
+ let n={species:$("species").value.trim(),nickname:$("nickname").value.trim(),types:$("types").value.trim(),level:Number($("level").value),base:{},ivs:{},evs:{}};
+ for(let k of STAT_KEYS){n.base[k]=Number($("base_"+k).value);n.ivs[k]=Number($("ivs_"+k).value);n.evs[k]=Number($("evs_"+k).value)}
+ return n;
+}
+const YIELDS={
+ "pidgey":{speed:1},"rattata":{speed:1},"zubat":{speed:1},"geodude":{defense:1},"onix":{defense:1},
+ "machop":{attack:1},"mankey":{attack:1},"abra":{spAttack:1},"gastly":{spAttack:1},"oddish":{spAttack:1},
+ "bellsprout":{attack:1},"caterpie":{hp:1},"weedle":{speed:1},"spearow":{speed:1},"ekans":{attack:1},
+ "sandshrew":{defense:1},"clefairy":{hp:2},"vulpix":{speed:1},"psyduck":{spAttack:1},"growlithe":{attack:1},
+ "poliwag":{speed:1},"tentacool":{spDefense:1},"slowpoke":{hp:1},"magnemite":{spAttack:1},
+ "doduo":{attack:1},"seel":{spDefense:1},"grimer":{hp:1},"gastly":{spAttack:1},"drowzee":{spDefense:1},
+ "krabby":{attack:1},"voltorb":{speed:1},"cubone":{defense:1},"horsea":{spAttack:1},"goldeen":{attack:1},
+ "staryu":{speed:1},"magikarp":{speed:1},"eevee":{spDefense:1},"dratini":{attack:1},
+ "pikachu":{speed:2},"raichu":{speed:3},"bulbasaur":{spAttack:1},"ivysaur":{spAttack:1},"venusaur":{spAttack:2},
+ "charmander":{speed:1},"charmeleon":{spAttack:1},"charizard":{spAttack:3},
+ "squirtle":{defense:1},"wartortle":{defense:1},"blastoise":{spDefense:3},
+ "mudkip":{hp:1},"marshtomp":{attack:2},"swampert":{attack:3},"treecko":{speed:1},"grovyle":{speed:2},"sceptile":{speed:3},
+ "torchic":{attack:1},"combusken":{attack:1,spAttack:1},"blaziken":{attack:3},
+ "taillow":{speed:1},"wingull":{speed:1},"lotad":{spDefense:1},"lombre":{spAttack:2},"ludicolo":{spDefense:3},
+ "ralts":{spAttack:1},"kirlia":{spAttack:2},"gardevoir":{spAttack:3},"shroomish":{hp:1},"breloom":{attack:2}
+};
+function addEV(m,gains){
+ let room=510-totalEV(m.evs),added={};
+ for(let k of STAT_KEYS){let want=Math.max(0,Math.floor(gains[k]||0));let can=Math.min(want,252-m.evs[k],room);m.evs[k]+=can;room-=can;added[k]=can}
+ return added;
+}
+function openActivity(id){
+ let m=box().mons.find(x=>x.id===id);
+ let content=`<p class="muted">Describe the battle or enter exact EV gains. Examples: <b>Defeated Geodude x2</b> or <b>+4 Attack, +2 Speed</b>.</p>
+ <div class="field"><label>What did ${safe(m.nickname||m.species)} do?</label><textarea id="activityText" rows="3" placeholder="Defeated Geodude x2"></textarea></div>
+ <div class="result" id="evPreview">Current EVs: ${totalEV(m.evs)}/510</div>
+ <div class="notice">Recognised opponents: common Gen 1 and Gen 3 Pokémon listed in the app. For any other opponent, type exact EV gains, e.g. +2 Speed.</div>`;
+ openModal("Record activity",content,`<button id="activityCancel">Cancel</button><button class="primary" id="applyActivity">Apply EVs</button>`);
+ $("activityCancel").onclick=closeModal;
+ $("applyActivity").onclick=()=>{
+  let txt=$("activityText").value.trim().toLowerCase();if(!txt){alert("Describe the activity first.");return}
+  let gains=Object.fromEntries(STAT_KEYS.map(k=>[k,0])),matched=false;
+  // Exact stat gains: +4 Attack, +2 Speed, +1 Sp. Attack
+  const aliases={"hp":"hp","attack":"attack","atk":"attack","defense":"defense","defence":"defense","def":"defense","sp. attack":"spAttack","sp attack":"spAttack","special attack":"spAttack","spatk":"spAttack","sp. defense":"spDefense","sp defense":"spDefense","special defense":"spDefense","spdef":"spDefense","speed":"speed"};
+  for(let [name,key] of Object.entries(aliases)){let re=new RegExp("\\+(\\d+)\\s*"+name.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i");let mt=txt.match(re);if(mt){gains[key]+=Number(mt[1]);matched=true}}
+  if(!matched){
+   let name=txt.replace(/^(defeated|beat|fought|knocked out|ko'd)\s+/,"").replace(/\s*x\s*\d+$/,"").trim();
+   let countMatch=txt.match(/\bx\s*(\d+)\b/);let count=countMatch?Number(countMatch[1]):1;
+   let yieldStats=YIELDS[name];
+   if(yieldStats){for(let k in yieldStats)gains[k]=yieldStats[k]*count;matched=true}
+  }
+  if(!matched){alert("I couldn't recognise that opponent or EV format. Try 'Defeated Geodude x2' or '+4 Attack, +2 Speed'.");return}
+  let added=addEV(m,gains),summary=STAT_KEYS.filter(k=>added[k]>0).map(k=>`${STAT_LABELS[STAT_KEYS.indexOf(k)]} +${added[k]}`).join(", ");
+  m.log=m.log||[];m.log.unshift({text:$("activityText").value,added,date:new Date().toLocaleString()});
+  save();closeModal();render();alert(summary?"EVs added: "+summary:"No EVs added (one or more limits reached).");
+ };
+}
+$("playerSelect").onchange=e=>{currentPlayer=e.target.value;currentBox=player().boxes[0].id;render()};
+$("addPlayerBtn").onclick=()=>{let n=prompt("Name the new player:");if(!n||!n.trim())return;let p=freshPlayer(n.trim());db.players.push(p);currentPlayer=p.id;currentBox=p.boxes[0].id;render()};
+$("renamePlayerBtn").onclick=()=>{let n=prompt("New player name:",player().name);if(n&&n.trim()){player().name=n.trim();render()}};
+$("deletePlayerBtn").onclick=()=>{if(db.players.length===1){alert("You need at least one player.");return}if(confirm("Delete this player and all their boxes?")){db.players=db.players.filter(p=>p.id!==currentPlayer);currentPlayer=db.players[0].id;currentBox=player().boxes[0].id;render()}};
+$("newBoxBtn").onclick=()=>{let n=prompt("Name the new box:",`Box ${player().boxes.length+1}`);if(!n||!n.trim())return;let b={id:uid(),name:n.trim(),mons:[]};player().boxes.push(b);currentBox=b.id;render()};
+$("renameBoxBtn").onclick=()=>{let n=prompt("New box name:",box().name);if(n&&n.trim()){box().name=n.trim();render()}};
+$("addMonBtn").onclick=()=>openMon();
+$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="pokemon-box-backup.json";a.click();URL.revokeObjectURL(a.href)};
+render();
+// Save again when the page is backgrounded or closed, in addition to saving after edits.
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")save()});
+</script>
+</body>
+</html>
